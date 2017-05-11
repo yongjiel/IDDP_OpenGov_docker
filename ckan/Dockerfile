@@ -96,8 +96,11 @@ ENTRYPOINT ["/ckan-entrypoint.sh"]
 VOLUME ["/var/lib/ckan"]
 
 # ckan datapusher
-EXPOSE 8001 8800
+EXPOSE 8001 8800 5000
 
 RUN  . /usr/lib/ckan/default/bin/activate
 
-CMD ["apachectl", "-DFOREGROUND"]
+COPY .bash_profile /
+
+#CMD ["apachectl", "-DFOREGROUND"]
+CMD  ["/usr/lib/ckan/default/bin/paster", "serve", "--reload", "/etc/ckan/default/ckan.ini"]
