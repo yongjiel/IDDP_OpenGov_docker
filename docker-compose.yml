@@ -1,0 +1,77 @@
+version: '2'
+
+services:
+  solr:
+    build:
+      context: ./solr
+    image:
+      ogp/solr:latest
+    volumes:
+      - "solr-data:/opt/solr/server/solr/ckan"
+    environment:
+      SOLR_CORE: ckan
+    ports:
+      - "8984:8983"
+
+  redis:
+    image:
+      redis:latest
+    volumes:
+      - "redis-data:/data"
+
+  db:
+    build:
+      context: ./db
+    image:
+      ogp/db:latest
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    environment:
+      CKAN_SQLALCHEMY_URL: postgresql://ckan:${DBPASS1}@db/ckan
+      CKAN_SOLR_URL: http://solr:8983/solr/ckan
+      CKAN_REDIS_URL: redis://redis/1
+      CKAN_DATASTORE_READ_URL:  postgresql://ckan:${DBPASS1}@db/datastore
+      CKAN_DATASTORE_WRITE_URL: postgresql://datastore:${DBPASS2}@db/datastore
+      POSTGRES_USER: ckan
+      POSTGRES_PASSWORD: ${DBPASS1}
+      POSTGRES_DB: ckan
+      POSTGRES_APP_HOSTS: all
+      POSTGRES_REP_HOSTS: all
+      POSTGRES_PASS2: ${DBPASS2}
+    depends_on:
+      - solr
+      - redis
+    ports:
+      - "5433:5432"
+
+  ckan:
+    build:
+      context: ./ckan
+    image:
+      ogp/ckan:latest
+    volumes:
+      - "ckan-data:/var/lib/ckan"
+      - "/mnt/opengov/appfiles:/mnt/opengov/appfiles"
+    depends_on:
+      - db
+      - solr
+      - redis
+    environment:
+      CKAN_SQLALCHEMY_URL: postgresql://ckan:${DBPASS1}@db/ckan
+      CKAN_SOLR_URL: http://solr:8983/solr/ckan
+      CKAN_REDIS_URL: redis://redis/1
+      CKAN_DATASTORE_READ_URL:  postgresql://ckan:${DBPASS1}@db/datastore
+      CKAN_DATASTORE_WRITE_URL: postgresql://datastore:${DBPASS2}@db/datastore
+      CKAN_SITE_URL: http://172.23.37.24:5001
+    ports:
+      - "5001:8001"
+      - "8801:8800"
+
+
+volumes:
+  ckan-data:
+  db-data:
+  solr-data:
+  redis-data:
+
+
