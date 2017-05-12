@@ -1,3 +1,52 @@
+
+
+Updates
+============================
+
+docker-compose build
+docker-compose up -d redis solr db
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_db-data/_data
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_ckan-data/_data
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_solr-data/_data
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_redis-data/_data
+docker-compose logs -f
+docker-compose up -d
+
+
+docker-compose rm -f
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_db-data/_data
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_ckan-data/_data
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_solr-data/_data
+sudo chmod 777 -R /var/lib/docker/volumes/jackdocker_redis-data/_data
+docker-compose up --build
+
+if shows 'sqlalchemy.exc.OperationalError: (OperationalError) fe_sendauth: no password supplied':
+  go into docker exec -ti jackdocker_db_1 /bin/bash
+  psql -U ckan 
+   ALTER USER "ckan" WITH PASSWORD 'ckan';
+   control D
+  psql -U datasotre 
+   ALTER USER "datastore" WITH PASSWORD 'ckan';
+   control D
+   in ckan/ckan-setting.ini, 
+       remove googleanalytics  from ckan.plugins = 
+
+   in docker-compose.yml 
+       postgresql://ckan:ckan@db:5432/ckan
+       postgresql://datastore:ckan@db:5432/datastore
+
+   in /var/lib/docker/volumes/jackdocker_db-data/_data/pg_hba.conf
+      local    all             all                                      md5
+
+   in solr/fetch-schema.sh, 
+      reference  that file in the folder.
+
+  contral C in 'docker-compose up --build'
+  docker-compose rm -f
+  docker-compose up --build
+
+
+
 Docker deployment of OpenGov
 ============================
 
