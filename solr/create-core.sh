@@ -9,8 +9,9 @@ create-core()
 	if [ ! -e $COREDIR/core.properties ]; then
 	    echo "Creating core $CORE"
 		mkdir -p $COREDIR
+		#chown solr:solr $COREDIR
 	    cp -a $SOLR_HOME/configsets/$CONFIG/* $COREDIR/
-	    rm -f $COREDIR/conf/managed-schema # TEMP
+	    #rm -rf $COREDIR/conf/managed-schema # TEMP
 	    touch $COREDIR/core.properties
 	else
 	    echo "Core $CORE already exists"

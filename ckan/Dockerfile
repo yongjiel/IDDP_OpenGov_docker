@@ -102,5 +102,9 @@ RUN  . /usr/lib/ckan/default/bin/activate
 
 COPY .bash_profile /
 
+RUN cp  /usr/lib/ckan/default/src/ckan/ckan/public/base/css/main.css /usr/lib/ckan/default/src/ckan/ckan/public/base/css/main.debug.css
+
+#RUN ["/usr/lib/ckan/default/bin/paster", "--plugin=ckan", "search-index",  "rebuild",  "-c",  "/etc/ckan/default/ckan.ini"]
+
 #CMD ["apachectl", "-DFOREGROUND"]
 CMD  ["/usr/lib/ckan/default/bin/paster", "serve", "--reload", "/etc/ckan/default/ckan.ini"]

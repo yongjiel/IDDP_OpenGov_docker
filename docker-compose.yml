@@ -1,6 +1,17 @@
 version: '2'
 
 services:
+  solrdata:
+    image: solr:6.5
+    volumes:
+      - "solr-data:/opt/solr/server/solr/ckan"
+    user:
+      root
+    entrypoint:
+      - chown
+      - solr:solr
+      - /opt/solr/server/solr/ckan
+
   solr:
     build:
       context: ./solr
@@ -27,20 +38,20 @@ services:
     volumes:
       - "db-data:/var/lib/postgresql/data"
     environment:
-      CKAN_SQLALCHEMY_URL: postgresql://ckan:ckan@db:5432/ckan
+      CKAN_SQLALCHEMY_URL: postgresql://ckan:${DBPASS1}@db/ckan
       CKAN_SOLR_URL: http://solr:8983/solr/ckan
       CKAN_REDIS_URL: redis://redis/1
-      CKAN_DATASTORE_READ_URL:  postgresql://ckan:ckan@db:5432/datastore
-      CKAN_DATASTORE_WRITE_URL: postgresql://datastore:ckan@db:5432/datastore
+      CKAN_DATASTORE_READ_URL:  postgresql://ckan:${DBPASS1}@db/datastore
+      CKAN_DATASTORE_WRITE_URL: postgresql://datastore:${DBPASS2}@db/datastore
       POSTGRES_USER: ckan
-      POSTGRES_PASSWORD: ckan
+      POSTGRES_PASSWORD: ${DBPASS1}
       POSTGRES_DB: ckan
       POSTGRES_APP_HOSTS: all
       POSTGRES_REP_HOSTS: all
-      POSTGRES_PASS2: ckan
+      POSTGRES_PASS2: ${DBPASS2}
     depends_on:
-      - solr
       - redis
+      - solr
     ports:
       - "5433:5432"
 
@@ -53,15 +64,15 @@ services:
       - "ckan-data:/var/lib/ckan"
       - "/mnt/opengov/appfiles:/mnt/opengov/appfiles"
     depends_on:
-      - db
-      - solr
       - redis
+      - solr
+      - db
     environment:
-      CKAN_SQLALCHEMY_URL: postgresql://ckan:ckan@db:5432/ckan
+      CKAN_SQLALCHEMY_URL: postgresql://ckan:${DBPASS1}@db/ckan
       CKAN_SOLR_URL: http://solr:8983/solr/ckan
       CKAN_REDIS_URL: redis://redis/1
-      CKAN_DATASTORE_READ_URL:  postgresql://ckan:ckan@db:5432/datastore
-      CKAN_DATASTORE_WRITE_URL: postgresql://datastore:ckan@db:5432/datastore
+      CKAN_DATASTORE_READ_URL:  postgresql://ckan:${DBPASS1}@db/datastore
+      CKAN_DATASTORE_WRITE_URL: postgresql://datastore:${DBPASS2}@db/datastore
       CKAN_SITE_URL: http://172.23.37.24:5001
     ports:
       - "5001:5000"

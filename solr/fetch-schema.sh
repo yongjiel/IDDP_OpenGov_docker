@@ -13,7 +13,7 @@ fetch-schema()
 		echo "Fetching schema for $CORE"
 		# wget -N -O $COREDIR/conf/managed-schema $CKAN_REPO/$CKAN_REVISION/ckan/config/solr/schema.xml
 		cp -p /schema.xml $COREDIR/conf/managed-schema
-		rm $COREDIR/conf/schema.xml
+		rm -rf $COREDIR/conf/schema.xml
 		ln -s managed-schema $COREDIR/conf/schema.xml # For CKAN
 	#else
 	#    echo "Schema for $CORE already exists"

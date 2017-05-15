@@ -1,0 +1,3199 @@
+--
+-- PostgreSQL database cluster dump
+--
+
+SET default_transaction_read_only = off;
+
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+
+--
+-- Roles
+--
+
+CREATE ROLE ckan;
+ALTER ROLE ckan WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'md509b309fcb58081110bc19e6ce22b63cb';
+CREATE ROLE datastore;
+ALTER ROLE datastore WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'md5326bce734c4a0c0251ce068b579966f0';
+CREATE ROLE postgres;
+ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS;
+
+
+
+
+
+
+--
+-- Database creation
+--
+
+CREATE DATABASE ckan WITH TEMPLATE = template0 OWNER = postgres;
+CREATE DATABASE datastore WITH TEMPLATE = template0 OWNER = datastore;
+GRANT CONNECT ON DATABASE datastore TO ckan;
+REVOKE CONNECT,TEMPORARY ON DATABASE template1 FROM PUBLIC;
+GRANT CONNECT ON DATABASE template1 TO PUBLIC;
+
+
+\connect ckan
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.2
+-- Dumped by pg_dump version 9.6.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: activity; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE activity (
+    id text NOT NULL,
+    "timestamp" timestamp without time zone,
+    user_id text,
+    object_id text,
+    revision_id text,
+    activity_type text,
+    data text
+);
+
+
+ALTER TABLE activity OWNER TO ckan;
+
+--
+-- Name: activity_detail; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE activity_detail (
+    id text NOT NULL,
+    activity_id text,
+    object_id text,
+    object_type text,
+    activity_type text,
+    data text
+);
+
+
+ALTER TABLE activity_detail OWNER TO ckan;
+
+--
+-- Name: authorization_group; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE authorization_group (
+    id text NOT NULL,
+    name text,
+    created timestamp without time zone
+);
+
+
+ALTER TABLE authorization_group OWNER TO ckan;
+
+--
+-- Name: authorization_group_role; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE authorization_group_role (
+    user_object_role_id text NOT NULL,
+    authorization_group_id text
+);
+
+
+ALTER TABLE authorization_group_role OWNER TO ckan;
+
+--
+-- Name: authorization_group_user; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE authorization_group_user (
+    authorization_group_id text NOT NULL,
+    user_id text NOT NULL,
+    id text NOT NULL
+);
+
+
+ALTER TABLE authorization_group_user OWNER TO ckan;
+
+--
+-- Name: dashboard; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE dashboard (
+    user_id text NOT NULL,
+    activity_stream_last_viewed timestamp without time zone NOT NULL,
+    email_last_sent timestamp without time zone DEFAULT ('now'::text)::timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE dashboard OWNER TO ckan;
+
+--
+-- Name: group; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE "group" (
+    id text NOT NULL,
+    name text NOT NULL,
+    title text,
+    description text,
+    created timestamp without time zone,
+    state text,
+    revision_id text,
+    type text NOT NULL,
+    approval_status text,
+    image_url text,
+    is_organization boolean DEFAULT false
+);
+
+
+ALTER TABLE "group" OWNER TO ckan;
+
+--
+-- Name: group_extra; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE group_extra (
+    id text NOT NULL,
+    group_id text,
+    key text,
+    value text,
+    state text,
+    revision_id text
+);
+
+
+ALTER TABLE group_extra OWNER TO ckan;
+
+--
+-- Name: group_extra_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE group_extra_revision (
+    id text NOT NULL,
+    group_id text,
+    key text,
+    value text,
+    state text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean
+);
+
+
+ALTER TABLE group_extra_revision OWNER TO ckan;
+
+--
+-- Name: group_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE group_revision (
+    id text NOT NULL,
+    name text NOT NULL,
+    title text,
+    description text,
+    created timestamp without time zone,
+    state text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean,
+    type text NOT NULL,
+    approval_status text,
+    image_url text,
+    is_organization boolean DEFAULT false
+);
+
+
+ALTER TABLE group_revision OWNER TO ckan;
+
+--
+-- Name: group_role; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE group_role (
+    user_object_role_id text NOT NULL,
+    group_id text
+);
+
+
+ALTER TABLE group_role OWNER TO ckan;
+
+--
+-- Name: ldap_user; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE ldap_user (
+    id text NOT NULL,
+    user_id text NOT NULL,
+    ldap_id text NOT NULL,
+    created timestamp without time zone
+);
+
+
+ALTER TABLE ldap_user OWNER TO ckan;
+
+--
+-- Name: member; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE member (
+    id text NOT NULL,
+    table_id text NOT NULL,
+    group_id text,
+    state text,
+    revision_id text,
+    table_name text NOT NULL,
+    capacity text NOT NULL
+);
+
+
+ALTER TABLE member OWNER TO ckan;
+
+--
+-- Name: member_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE member_revision (
+    id text NOT NULL,
+    table_id text NOT NULL,
+    group_id text,
+    state text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean,
+    table_name text NOT NULL,
+    capacity text NOT NULL
+);
+
+
+ALTER TABLE member_revision OWNER TO ckan;
+
+--
+-- Name: migrate_version; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE migrate_version (
+    repository_id character varying(250) NOT NULL,
+    repository_path text,
+    version integer
+);
+
+
+ALTER TABLE migrate_version OWNER TO ckan;
+
+--
+-- Name: package; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package (
+    id text NOT NULL,
+    name character varying(100) NOT NULL,
+    title text,
+    version character varying(100),
+    url text,
+    notes text,
+    license_id text,
+    revision_id text,
+    author text,
+    author_email text,
+    maintainer text,
+    maintainer_email text,
+    state text,
+    type text,
+    owner_org text,
+    private boolean DEFAULT false,
+    metadata_modified timestamp without time zone,
+    creator_user_id text
+);
+
+
+ALTER TABLE package OWNER TO ckan;
+
+--
+-- Name: package_extra; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_extra (
+    id text NOT NULL,
+    package_id text,
+    key text,
+    value text,
+    revision_id text,
+    state text
+);
+
+
+ALTER TABLE package_extra OWNER TO ckan;
+
+--
+-- Name: package_extra_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_extra_revision (
+    id text NOT NULL,
+    package_id text,
+    key text,
+    value text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    state text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean
+);
+
+
+ALTER TABLE package_extra_revision OWNER TO ckan;
+
+--
+-- Name: package_relationship; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_relationship (
+    id text NOT NULL,
+    subject_package_id text,
+    object_package_id text,
+    type text,
+    comment text,
+    revision_id text,
+    state text
+);
+
+
+ALTER TABLE package_relationship OWNER TO ckan;
+
+--
+-- Name: package_relationship_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_relationship_revision (
+    id text NOT NULL,
+    subject_package_id text,
+    object_package_id text,
+    type text,
+    comment text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    state text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean
+);
+
+
+ALTER TABLE package_relationship_revision OWNER TO ckan;
+
+--
+-- Name: package_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_revision (
+    id text NOT NULL,
+    name character varying(100) NOT NULL,
+    title text,
+    version character varying(100),
+    url text,
+    notes text,
+    license_id text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    author text,
+    author_email text,
+    maintainer text,
+    maintainer_email text,
+    state text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean,
+    type text,
+    owner_org text,
+    private boolean DEFAULT false,
+    metadata_modified timestamp without time zone,
+    creator_user_id text
+);
+
+
+ALTER TABLE package_revision OWNER TO ckan;
+
+--
+-- Name: package_role; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_role (
+    user_object_role_id text NOT NULL,
+    package_id text
+);
+
+
+ALTER TABLE package_role OWNER TO ckan;
+
+--
+-- Name: package_tag; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_tag (
+    id text NOT NULL,
+    package_id text,
+    tag_id text,
+    revision_id text,
+    state text
+);
+
+
+ALTER TABLE package_tag OWNER TO ckan;
+
+--
+-- Name: package_tag_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE package_tag_revision (
+    id text NOT NULL,
+    package_id text,
+    tag_id text,
+    revision_id text NOT NULL,
+    continuity_id text,
+    state text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean
+);
+
+
+ALTER TABLE package_tag_revision OWNER TO ckan;
+
+--
+-- Name: rating; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE rating (
+    id text NOT NULL,
+    user_id text,
+    user_ip_address text,
+    package_id text,
+    rating double precision,
+    created timestamp without time zone
+);
+
+
+ALTER TABLE rating OWNER TO ckan;
+
+--
+-- Name: related; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE related (
+    id text NOT NULL,
+    type text NOT NULL,
+    title text,
+    description text,
+    image_url text,
+    url text,
+    created timestamp without time zone,
+    owner_id text,
+    view_count integer DEFAULT 0 NOT NULL,
+    featured integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE related OWNER TO ckan;
+
+--
+-- Name: related_dataset; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE related_dataset (
+    id text NOT NULL,
+    dataset_id text NOT NULL,
+    related_id text NOT NULL,
+    status text
+);
+
+
+ALTER TABLE related_dataset OWNER TO ckan;
+
+--
+-- Name: resource; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE resource (
+    id text NOT NULL,
+    url text NOT NULL,
+    format text,
+    description text,
+    "position" integer,
+    revision_id text,
+    hash text,
+    state text,
+    extras text,
+    name text,
+    resource_type text,
+    mimetype text,
+    mimetype_inner text,
+    size bigint,
+    last_modified timestamp without time zone,
+    cache_url text,
+    cache_last_updated timestamp without time zone,
+    webstore_url text,
+    webstore_last_updated timestamp without time zone,
+    created timestamp without time zone,
+    url_type text,
+    package_id text DEFAULT ''::text NOT NULL
+);
+
+
+ALTER TABLE resource OWNER TO ckan;
+
+--
+-- Name: resource_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE resource_revision (
+    id text NOT NULL,
+    url text NOT NULL,
+    format text,
+    description text,
+    "position" integer,
+    revision_id text NOT NULL,
+    continuity_id text,
+    hash text,
+    state text,
+    extras text,
+    expired_id text,
+    revision_timestamp timestamp without time zone,
+    expired_timestamp timestamp without time zone,
+    current boolean,
+    name text,
+    resource_type text,
+    mimetype text,
+    mimetype_inner text,
+    size bigint,
+    last_modified timestamp without time zone,
+    cache_url text,
+    cache_last_updated timestamp without time zone,
+    webstore_url text,
+    webstore_last_updated timestamp without time zone,
+    created timestamp without time zone,
+    url_type text,
+    package_id text DEFAULT ''::text NOT NULL
+);
+
+
+ALTER TABLE resource_revision OWNER TO ckan;
+
+--
+-- Name: resource_view; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE resource_view (
+    id text NOT NULL,
+    resource_id text,
+    title text,
+    description text,
+    view_type text NOT NULL,
+    "order" integer NOT NULL,
+    config text
+);
+
+
+ALTER TABLE resource_view OWNER TO ckan;
+
+--
+-- Name: revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE revision (
+    id text NOT NULL,
+    "timestamp" timestamp without time zone,
+    author character varying(200),
+    message text,
+    state text,
+    approved_timestamp timestamp without time zone
+);
+
+
+ALTER TABLE revision OWNER TO ckan;
+
+--
+-- Name: role_action; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE role_action (
+    id text NOT NULL,
+    role text,
+    context text NOT NULL,
+    action text
+);
+
+
+ALTER TABLE role_action OWNER TO ckan;
+
+--
+-- Name: system_info; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE system_info (
+    id integer NOT NULL,
+    key character varying(100) NOT NULL,
+    value text,
+    revision_id text
+);
+
+
+ALTER TABLE system_info OWNER TO ckan;
+
+--
+-- Name: system_info_id_seq; Type: SEQUENCE; Schema: public; Owner: ckan
+--
+
+CREATE SEQUENCE system_info_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE system_info_id_seq OWNER TO ckan;
+
+--
+-- Name: system_info_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ckan
+--
+
+ALTER SEQUENCE system_info_id_seq OWNED BY system_info.id;
+
+
+--
+-- Name: system_info_revision; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE system_info_revision (
+    id integer NOT NULL,
+    key character varying(100) NOT NULL,
+    value text,
+    revision_id text NOT NULL,
+    continuity_id integer
+);
+
+
+ALTER TABLE system_info_revision OWNER TO ckan;
+
+--
+-- Name: system_info_revision_id_seq; Type: SEQUENCE; Schema: public; Owner: ckan
+--
+
+CREATE SEQUENCE system_info_revision_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE system_info_revision_id_seq OWNER TO ckan;
+
+--
+-- Name: system_info_revision_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ckan
+--
+
+ALTER SEQUENCE system_info_revision_id_seq OWNED BY system_info_revision.id;
+
+
+--
+-- Name: system_role; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE system_role (
+    user_object_role_id text NOT NULL
+);
+
+
+ALTER TABLE system_role OWNER TO ckan;
+
+--
+-- Name: tag; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE tag (
+    id text NOT NULL,
+    name character varying(100) NOT NULL,
+    vocabulary_id character varying(100)
+);
+
+
+ALTER TABLE tag OWNER TO ckan;
+
+--
+-- Name: task_status; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE task_status (
+    id text NOT NULL,
+    entity_id text NOT NULL,
+    entity_type text NOT NULL,
+    task_type text NOT NULL,
+    key text NOT NULL,
+    value text NOT NULL,
+    state text,
+    error text,
+    last_updated timestamp without time zone
+);
+
+
+ALTER TABLE task_status OWNER TO ckan;
+
+--
+-- Name: term_translation; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE term_translation (
+    term text NOT NULL,
+    term_translation text NOT NULL,
+    lang_code text NOT NULL
+);
+
+
+ALTER TABLE term_translation OWNER TO ckan;
+
+--
+-- Name: tracking_raw; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE tracking_raw (
+    user_key character varying(100) NOT NULL,
+    url text NOT NULL,
+    tracking_type character varying(10) NOT NULL,
+    access_timestamp timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE tracking_raw OWNER TO ckan;
+
+--
+-- Name: tracking_summary; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE tracking_summary (
+    url text NOT NULL,
+    package_id text,
+    tracking_type character varying(10) NOT NULL,
+    count integer NOT NULL,
+    running_total integer DEFAULT 0 NOT NULL,
+    recent_views integer DEFAULT 0 NOT NULL,
+    tracking_date date
+);
+
+
+ALTER TABLE tracking_summary OWNER TO ckan;
+
+--
+-- Name: user; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE "user" (
+    id text NOT NULL,
+    name text NOT NULL,
+    apikey text,
+    created timestamp without time zone,
+    about text,
+    openid text,
+    password text,
+    fullname text,
+    email text,
+    reset_key text,
+    sysadmin boolean DEFAULT false,
+    activity_streams_email_notifications boolean DEFAULT false,
+    state text DEFAULT 'active'::text NOT NULL
+);
+
+
+ALTER TABLE "user" OWNER TO ckan;
+
+--
+-- Name: user_following_dataset; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE user_following_dataset (
+    follower_id text NOT NULL,
+    object_id text NOT NULL,
+    datetime timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE user_following_dataset OWNER TO ckan;
+
+--
+-- Name: user_following_group; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE user_following_group (
+    follower_id text NOT NULL,
+    object_id text NOT NULL,
+    datetime timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE user_following_group OWNER TO ckan;
+
+--
+-- Name: user_following_user; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE user_following_user (
+    follower_id text NOT NULL,
+    object_id text NOT NULL,
+    datetime timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE user_following_user OWNER TO ckan;
+
+--
+-- Name: user_object_role; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE user_object_role (
+    id text NOT NULL,
+    user_id text,
+    context text NOT NULL,
+    role text,
+    authorized_group_id text
+);
+
+
+ALTER TABLE user_object_role OWNER TO ckan;
+
+--
+-- Name: vocabulary; Type: TABLE; Schema: public; Owner: ckan
+--
+
+CREATE TABLE vocabulary (
+    id text NOT NULL,
+    name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE vocabulary OWNER TO ckan;
+
+--
+-- Name: system_info id; Type: DEFAULT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info ALTER COLUMN id SET DEFAULT nextval('system_info_id_seq'::regclass);
+
+
+--
+-- Name: system_info_revision id; Type: DEFAULT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info_revision ALTER COLUMN id SET DEFAULT nextval('system_info_revision_id_seq'::regclass);
+
+
+--
+-- Data for Name: activity; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY activity (id, "timestamp", user_id, object_id, revision_id, activity_type, data) FROM stdin;
+2a261023-88a4-4470-9bbf-405e3b578403	2017-05-15 22:23:19.017087	26700d68-324d-4bef-8223-24fa39960cc6	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	d8d380d5-5de2-45b2-9843-b2a83a1c2a3e	new organization	{"group": {"description": "org1", "title": "org1", "created": "2017-05-15T22:23:19.000963", "approval_status": "approved", "is_organization": true, "state": "active", "image_url": "", "revision_id": "d8d380d5-5de2-45b2-9843-b2a83a1c2a3e", "type": "organization", "id": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "name": "org1"}}
+e2663dd9-6d5b-43a6-b26d-a5559b4481b7	2017-05-15 22:23:51.494816	26700d68-324d-4bef-8223-24fa39960cc6	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	375052f2-1f83-47d8-b33e-80967d39f1cb	new package	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:23:51.302355", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "draft", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+408a6d07-e7bc-4d8a-9304-f0f14d80dc8d	2017-05-15 22:23:58.96022	26700d68-324d-4bef-8223-24fa39960cc6	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	667a284b-3074-4398-bbbc-0b195bf6316f	changed package	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:23:58.865167", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "draft", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+38503225-3e6f-44ac-8681-53ac336a69bd	2017-05-15 22:23:59.215135	26700d68-324d-4bef-8223-24fa39960cc6	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	48d99515-9d21-41a0-bc4b-cb6a9c314924	changed package	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:23:59.014150", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "active", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "48d99515-9d21-41a0-bc4b-cb6a9c314924", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+83881a3e-9dbd-4b6a-a212-eb722d6c5030	2017-05-15 22:26:48.873846	26700d68-324d-4bef-8223-24fa39960cc6	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	a803eb7e-e38a-49fd-b093-c66c9189f4ae	changed package	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:26:48.481532", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "active", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "48d99515-9d21-41a0-bc4b-cb6a9c314924", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+3ce604ca-5aff-47aa-85f6-017692165e03	2017-05-15 22:26:49.07306	26700d68-324d-4bef-8223-24fa39960cc6	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	f23ba7d4-48e7-4ecf-ae0c-d3b8741d4020	changed package	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:26:48.940858", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "active", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "48d99515-9d21-41a0-bc4b-cb6a9c314924", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+\.
+
+
+--
+-- Data for Name: activity_detail; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY activity_detail (id, activity_id, object_id, object_type, activity_type, data) FROM stdin;
+ed6034da-2f7c-4481-b9f2-b06dbf7f909d	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	Package	new	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:23:51.302355", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "draft", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+94bfd468-107b-4adc-b360-41a92f32905e	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	306abd6f-03a9-41ed-8c28-9edbb3c2d83f	PackageExtra	new	{"package_extra": {"state": "active", "value": "[\\"Children\\", \\"Consumers\\", \\"Educators\\"]", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "audience", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "306abd6f-03a9-41ed-8c28-9edbb3c2d83f"}}
+dd14991e-da4f-482c-9363-43b6a49e2a84	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	02f62e98-02c1-4c2b-a989-c0706e097b0d	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "source_type", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "02f62e98-02c1-4c2b-a989-c0706e097b0d"}}
+5a07d758-a67a-43e0-a479-43a7c13b2fda	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	7a662d55-c518-430d-9e17-7cc006162482	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "identifier", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "7a662d55-c518-430d-9e17-7cc006162482"}}
+348de87d-1236-4e47-93cb-97e46b1e7935	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	4a42554e-25bf-4b27-93bf-046686668075	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "alternatetitle", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "4a42554e-25bf-4b27-93bf-046686668075"}}
+a8b6d57a-cbda-47d9-adb6-ad6eeec13a00	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	8f754ea6-5895-4ed8-8e26-e7d86ce6e068	PackageExtra	new	{"package_extra": {"state": "active", "value": "[]", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "language", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "8f754ea6-5895-4ed8-8e26-e7d86ce6e068"}}
+a83b99d9-ea7a-46cb-8148-7100ca7406df	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	1438a9bb-1167-468f-b82e-a1ddb32d6aa3	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "contact", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "1438a9bb-1167-468f-b82e-a1ddb32d6aa3"}}
+ec5c1039-eace-402e-963a-fef3a5ae2ad6	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	eb80e52b-d91f-41b8-9a6d-639a9a797218	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "extent1", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "eb80e52b-d91f-41b8-9a6d-639a9a797218"}}
+3adfbbe6-782b-4df1-a518-aa354ea46798	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	fbf3d711-fa50-4f25-8a69-9438ef51a3b4	PackageExtra	new	{"package_extra": {"state": "active", "value": "Once", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "updatefrequency", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "fbf3d711-fa50-4f25-8a69-9438ef51a3b4"}}
+36c4759b-d615-4c01-8f9f-dad623a166b5	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	3c435238-eb11-4f81-abe0-639983c2451b	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "contact_email", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "3c435238-eb11-4f81-abe0-639983c2451b"}}
+1d5f73ea-3d59-4d2f-a725-654d44694091	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	98cea6ad-d916-44bd-bf61-ebc1a60e122b	PackageExtra	new	{"package_extra": {"state": "active", "value": "2017-05-15", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "date_created", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "98cea6ad-d916-44bd-bf61-ebc1a60e122b"}}
+5cb98f6b-4fbc-42f8-bac4-6edf9fd05e77	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	93cfc721-ee37-47c1-a81a-049718f12dae	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "contactother", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "93cfc721-ee37-47c1-a81a-049718f12dae"}}
+7db32d8b-5ee3-4369-9059-485a5961164d	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	9789b5f7-4e6b-4a9b-a758-8c9245284c6d	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "spatialcoverage1", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "9789b5f7-4e6b-4a9b-a758-8c9245284c6d"}}
+39305411-1065-42cb-9c33-2e22db9c1355	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	f67ab2fe-d09a-4947-8524-773d0a5516ff	PackageExtra	new	{"package_extra": {"state": "active", "value": "unrestricted", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "sensitivity", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "f67ab2fe-d09a-4947-8524-773d0a5516ff"}}
+f76701b1-c0c6-47ae-bcc0-81b25ff50f54	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	d6701386-8ead-4aeb-affa-2bbc196c6183	PackageExtra	new	{"package_extra": {"state": "active", "value": "[\\"Culture and Tourism\\"]", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "creator", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "d6701386-8ead-4aeb-affa-2bbc196c6183"}}
+75897445-cc52-425f-9796-3a6162109250	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	a5612002-4614-4cdc-914b-23259edccc3f	PackageExtra	new	{"package_extra": {"state": "active", "value": "[\\"Arts, Culture and History\\", \\"Business and Industry\\", \\"Economy and Finance\\"]", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "topic", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "a5612002-4614-4cdc-914b-23259edccc3f"}}
+e36afbff-b5ef-4180-962c-87be6e7af54f	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	f9469ddb-66b5-414e-bc44-36a57f6ab199	PackageExtra	new	{"package_extra": {"state": "active", "value": "2017-05-15", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "date_modified", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "f9469ddb-66b5-414e-bc44-36a57f6ab199"}}
+0e83d2d8-f5ea-4083-8b4c-7d4afa9f1c7f	e2663dd9-6d5b-43a6-b26d-a5559b4481b7	e8d8c0e1-5548-4ab7-9ec6-ceed3e20b1e7	PackageExtra	new	{"package_extra": {"state": "active", "value": "", "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "key": "usage", "revision_id": "375052f2-1f83-47d8-b33e-80967d39f1cb", "id": "e8d8c0e1-5548-4ab7-9ec6-ceed3e20b1e7"}}
+cf917d87-9bcf-48fa-a780-d8f8fd5d1537	408a6d07-e7bc-4d8a-9304-f0f14d80dc8d	1cd0ca10-f39e-4106-8aa4-40e86275a01c	Resource	new	{"resource": {"cache_last_updated": null, "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "webstore_last_updated": null, "id": "1cd0ca10-f39e-4106-8aa4-40e86275a01c", "size": null, "state": "active", "last_modified": null, "hash": "", "description": "gg", "format": "", "mimetype_inner": null, "url_type": null, "mimetype": null, "cache_url": null, "name": "google.c", "created": "2017-05-15T22:23:58.875441", "url": "gg", "webstore_url": null, "extras": {}, "position": 0, "revision_id": "667a284b-3074-4398-bbbc-0b195bf6316f", "resource_type": null}}
+7c5194e9-37d4-427a-b478-6515757c686e	38503225-3e6f-44ac-8681-53ac336a69bd	1cd0ca10-f39e-4106-8aa4-40e86275a01c	Resource	changed	{"resource": {"cache_last_updated": null, "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "webstore_last_updated": null, "id": "1cd0ca10-f39e-4106-8aa4-40e86275a01c", "size": null, "state": "active", "last_modified": null, "hash": "", "description": "gg", "format": "", "mimetype_inner": null, "url_type": null, "mimetype": null, "cache_url": null, "name": "google.c", "created": "2017-05-15T22:23:58.875441", "url": "http://gg", "webstore_url": null, "extras": {}, "position": 0, "revision_id": "48d99515-9d21-41a0-bc4b-cb6a9c314924", "resource_type": null}}
+3c458b4f-8347-4355-b892-e5af70021c89	38503225-3e6f-44ac-8681-53ac336a69bd	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	Package	changed	{"package": {"owner_org": "c6d6dd1e-6be1-4616-8bee-d7ca8a75f310", "maintainer": null, "name": "default-test-1", "metadata_modified": "2017-05-15T22:23:59.014150", "author": null, "url": null, "notes": "test1", "title": "default test 1", "private": false, "maintainer_email": null, "author_email": null, "state": "active", "version": null, "creator_user_id": "26700d68-324d-4bef-8223-24fa39960cc6", "license_id": "QPTU", "revision_id": "48d99515-9d21-41a0-bc4b-cb6a9c314924", "type": "opendata", "id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605"}}
+0a2be261-fb13-49c7-b6f1-9acafcfd86d1	83881a3e-9dbd-4b6a-a212-eb722d6c5030	830ed0d8-ca9f-4f1d-95d7-bee866132a8b	Resource	new	{"resource": {"cache_last_updated": null, "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "webstore_last_updated": null, "id": "830ed0d8-ca9f-4f1d-95d7-bee866132a8b", "size": null, "state": "active", "last_modified": null, "hash": "", "description": "gg", "format": "", "mimetype_inner": null, "url_type": null, "mimetype": null, "cache_url": null, "name": "gg", "created": "2017-05-15T22:26:48.493159", "url": "google.ca", "webstore_url": null, "extras": {}, "position": 1, "revision_id": "a803eb7e-e38a-49fd-b093-c66c9189f4ae", "resource_type": null}}
+277dcb73-5cab-40a0-b4ad-e9f2f6fb02de	3ce604ca-5aff-47aa-85f6-017692165e03	830ed0d8-ca9f-4f1d-95d7-bee866132a8b	Resource	changed	{"resource": {"cache_last_updated": null, "package_id": "abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605", "webstore_last_updated": null, "id": "830ed0d8-ca9f-4f1d-95d7-bee866132a8b", "size": null, "state": "active", "last_modified": null, "hash": "", "description": "gg", "format": "", "mimetype_inner": null, "url_type": null, "mimetype": null, "cache_url": null, "name": "gg", "created": "2017-05-15T22:26:48.493159", "url": "http://google.ca", "webstore_url": null, "extras": {}, "position": 1, "revision_id": "f23ba7d4-48e7-4ecf-ae0c-d3b8741d4020", "resource_type": null}}
+\.
+
+
+--
+-- Data for Name: authorization_group; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY authorization_group (id, name, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: authorization_group_role; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY authorization_group_role (user_object_role_id, authorization_group_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: authorization_group_user; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY authorization_group_user (authorization_group_id, user_id, id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: dashboard; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY dashboard (user_id, activity_stream_last_viewed, email_last_sent) FROM stdin;
+26700d68-324d-4bef-8223-24fa39960cc6	2017-05-15 22:23:21.59598	2017-05-15 22:23:10.507113
+\.
+
+
+--
+-- Data for Name: group; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY "group" (id, name, title, description, created, state, revision_id, type, approval_status, image_url, is_organization) FROM stdin;
+c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	org1	org1	org1	2017-05-15 22:23:19.000963	active	d8d380d5-5de2-45b2-9843-b2a83a1c2a3e	organization	approved		t
+\.
+
+
+--
+-- Data for Name: group_extra; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY group_extra (id, group_id, key, value, state, revision_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: group_extra_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY group_extra_revision (id, group_id, key, value, state, revision_id, continuity_id, expired_id, revision_timestamp, expired_timestamp, current) FROM stdin;
+\.
+
+
+--
+-- Data for Name: group_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY group_revision (id, name, title, description, created, state, revision_id, continuity_id, expired_id, revision_timestamp, expired_timestamp, current, type, approval_status, image_url, is_organization) FROM stdin;
+c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	org1	org1	org1	2017-05-15 22:23:19.000963	active	d8d380d5-5de2-45b2-9843-b2a83a1c2a3e	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	\N	2017-05-15 22:23:18.971059	9999-12-31 00:00:00	\N	organization	approved		t
+\.
+
+
+--
+-- Data for Name: group_role; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY group_role (user_object_role_id, group_id) FROM stdin;
+556af658-1ce0-414b-91c4-9f89949a3b96	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310
+f50051bd-965a-48f3-85f3-0ae96487429e	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310
+cf072ac9-48a5-4aee-a0df-779d0ab08d08	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310
+\.
+
+
+--
+-- Data for Name: ldap_user; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY ldap_user (id, user_id, ldap_id, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: member; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY member (id, table_id, group_id, state, revision_id, table_name, capacity) FROM stdin;
+37526ec5-1c45-4d3f-aed6-c33ea32c2c14	26700d68-324d-4bef-8223-24fa39960cc6	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	active	d8d380d5-5de2-45b2-9843-b2a83a1c2a3e	user	admin
+ac5e5b99-4bb9-48b3-9097-4bf0e244af2c	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	active	375052f2-1f83-47d8-b33e-80967d39f1cb	package	organization
+\.
+
+
+--
+-- Data for Name: member_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY member_revision (id, table_id, group_id, state, revision_id, continuity_id, expired_id, revision_timestamp, expired_timestamp, current, table_name, capacity) FROM stdin;
+37526ec5-1c45-4d3f-aed6-c33ea32c2c14	26700d68-324d-4bef-8223-24fa39960cc6	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	active	d8d380d5-5de2-45b2-9843-b2a83a1c2a3e	37526ec5-1c45-4d3f-aed6-c33ea32c2c14	\N	2017-05-15 22:23:18.971059	9999-12-31 00:00:00	\N	user	admin
+ac5e5b99-4bb9-48b3-9097-4bf0e244af2c	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	active	375052f2-1f83-47d8-b33e-80967d39f1cb	ac5e5b99-4bb9-48b3-9097-4bf0e244af2c	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N	package	organization
+\.
+
+
+--
+-- Data for Name: migrate_version; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY migrate_version (repository_id, repository_path, version) FROM stdin;
+Ckan	/usr/lib/ckan/default/src/ckan/ckan/migration	76
+\.
+
+
+--
+-- Data for Name: package; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package (id, name, title, version, url, notes, license_id, revision_id, author, author_email, maintainer, maintainer_email, state, type, owner_org, private, metadata_modified, creator_user_id) FROM stdin;
+abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	default-test-1	default test 1	\N	\N	test1	QPTU	48d99515-9d21-41a0-bc4b-cb6a9c314924	\N	\N	\N	\N	active	opendata	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	f	2017-05-15 22:26:48.940858	26700d68-324d-4bef-8223-24fa39960cc6
+\.
+
+
+--
+-- Data for Name: package_extra; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_extra (id, package_id, key, value, revision_id, state) FROM stdin;
+fbf3d711-fa50-4f25-8a69-9438ef51a3b4	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	updatefrequency	Once	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+f9469ddb-66b5-414e-bc44-36a57f6ab199	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	date_modified	2017-05-15	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+93cfc721-ee37-47c1-a81a-049718f12dae	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	contactother		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+8f754ea6-5895-4ed8-8e26-e7d86ce6e068	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	language	[]	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+d6701386-8ead-4aeb-affa-2bbc196c6183	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	creator	["Culture and Tourism"]	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+f67ab2fe-d09a-4947-8524-773d0a5516ff	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	sensitivity	unrestricted	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+9789b5f7-4e6b-4a9b-a758-8c9245284c6d	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	spatialcoverage1		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+eb80e52b-d91f-41b8-9a6d-639a9a797218	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	extent1		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+4a42554e-25bf-4b27-93bf-046686668075	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	alternatetitle		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+a5612002-4614-4cdc-914b-23259edccc3f	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	topic	["Arts, Culture and History", "Business and Industry", "Economy and Finance"]	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+02f62e98-02c1-4c2b-a989-c0706e097b0d	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	source_type		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+306abd6f-03a9-41ed-8c28-9edbb3c2d83f	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	audience	["Children", "Consumers", "Educators"]	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+1438a9bb-1167-468f-b82e-a1ddb32d6aa3	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	contact		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+3c435238-eb11-4f81-abe0-639983c2451b	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	contact_email		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+e8d8c0e1-5548-4ab7-9ec6-ceed3e20b1e7	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	usage		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+98cea6ad-d916-44bd-bf61-ebc1a60e122b	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	date_created	2017-05-15	375052f2-1f83-47d8-b33e-80967d39f1cb	active
+7a662d55-c518-430d-9e17-7cc006162482	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	identifier		375052f2-1f83-47d8-b33e-80967d39f1cb	active
+\.
+
+
+--
+-- Data for Name: package_extra_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_extra_revision (id, package_id, key, value, revision_id, continuity_id, state, expired_id, revision_timestamp, expired_timestamp, current) FROM stdin;
+3c435238-eb11-4f81-abe0-639983c2451b	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	contact_email		375052f2-1f83-47d8-b33e-80967d39f1cb	3c435238-eb11-4f81-abe0-639983c2451b	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+98cea6ad-d916-44bd-bf61-ebc1a60e122b	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	date_created	2017-05-15	375052f2-1f83-47d8-b33e-80967d39f1cb	98cea6ad-d916-44bd-bf61-ebc1a60e122b	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+93cfc721-ee37-47c1-a81a-049718f12dae	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	contactother		375052f2-1f83-47d8-b33e-80967d39f1cb	93cfc721-ee37-47c1-a81a-049718f12dae	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+d6701386-8ead-4aeb-affa-2bbc196c6183	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	creator	["Culture and Tourism"]	375052f2-1f83-47d8-b33e-80967d39f1cb	d6701386-8ead-4aeb-affa-2bbc196c6183	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+02f62e98-02c1-4c2b-a989-c0706e097b0d	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	source_type		375052f2-1f83-47d8-b33e-80967d39f1cb	02f62e98-02c1-4c2b-a989-c0706e097b0d	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+1438a9bb-1167-468f-b82e-a1ddb32d6aa3	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	contact		375052f2-1f83-47d8-b33e-80967d39f1cb	1438a9bb-1167-468f-b82e-a1ddb32d6aa3	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+9789b5f7-4e6b-4a9b-a758-8c9245284c6d	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	spatialcoverage1		375052f2-1f83-47d8-b33e-80967d39f1cb	9789b5f7-4e6b-4a9b-a758-8c9245284c6d	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+fbf3d711-fa50-4f25-8a69-9438ef51a3b4	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	updatefrequency	Once	375052f2-1f83-47d8-b33e-80967d39f1cb	fbf3d711-fa50-4f25-8a69-9438ef51a3b4	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+e8d8c0e1-5548-4ab7-9ec6-ceed3e20b1e7	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	usage		375052f2-1f83-47d8-b33e-80967d39f1cb	e8d8c0e1-5548-4ab7-9ec6-ceed3e20b1e7	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+7a662d55-c518-430d-9e17-7cc006162482	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	identifier		375052f2-1f83-47d8-b33e-80967d39f1cb	7a662d55-c518-430d-9e17-7cc006162482	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+a5612002-4614-4cdc-914b-23259edccc3f	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	topic	["Arts, Culture and History", "Business and Industry", "Economy and Finance"]	375052f2-1f83-47d8-b33e-80967d39f1cb	a5612002-4614-4cdc-914b-23259edccc3f	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+8f754ea6-5895-4ed8-8e26-e7d86ce6e068	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	language	[]	375052f2-1f83-47d8-b33e-80967d39f1cb	8f754ea6-5895-4ed8-8e26-e7d86ce6e068	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+f9469ddb-66b5-414e-bc44-36a57f6ab199	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	date_modified	2017-05-15	375052f2-1f83-47d8-b33e-80967d39f1cb	f9469ddb-66b5-414e-bc44-36a57f6ab199	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+4a42554e-25bf-4b27-93bf-046686668075	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	alternatetitle		375052f2-1f83-47d8-b33e-80967d39f1cb	4a42554e-25bf-4b27-93bf-046686668075	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+eb80e52b-d91f-41b8-9a6d-639a9a797218	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	extent1		375052f2-1f83-47d8-b33e-80967d39f1cb	eb80e52b-d91f-41b8-9a6d-639a9a797218	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+306abd6f-03a9-41ed-8c28-9edbb3c2d83f	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	audience	["Children", "Consumers", "Educators"]	375052f2-1f83-47d8-b33e-80967d39f1cb	306abd6f-03a9-41ed-8c28-9edbb3c2d83f	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+f67ab2fe-d09a-4947-8524-773d0a5516ff	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	sensitivity	unrestricted	375052f2-1f83-47d8-b33e-80967d39f1cb	f67ab2fe-d09a-4947-8524-773d0a5516ff	active	\N	2017-05-15 22:23:51.276331	9999-12-31 00:00:00	\N
+\.
+
+
+--
+-- Data for Name: package_relationship; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_relationship (id, subject_package_id, object_package_id, type, comment, revision_id, state) FROM stdin;
+\.
+
+
+--
+-- Data for Name: package_relationship_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_relationship_revision (id, subject_package_id, object_package_id, type, comment, revision_id, continuity_id, state, expired_id, revision_timestamp, expired_timestamp, current) FROM stdin;
+\.
+
+
+--
+-- Data for Name: package_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_revision (id, name, title, version, url, notes, license_id, revision_id, continuity_id, author, author_email, maintainer, maintainer_email, state, expired_id, revision_timestamp, expired_timestamp, current, type, owner_org, private, metadata_modified, creator_user_id) FROM stdin;
+abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	default-test-1	default test 1	\N	\N	test1	QPTU	48d99515-9d21-41a0-bc4b-cb6a9c314924	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	\N	\N	\N	\N	active	\N	2017-05-15 22:23:59.013469	9999-12-31 00:00:00	\N	opendata	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	f	2017-05-15 22:23:59.01415	26700d68-324d-4bef-8223-24fa39960cc6
+abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	default-test-1	default test 1	\N	\N	test1	QPTU	375052f2-1f83-47d8-b33e-80967d39f1cb	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605	\N	\N	\N	\N	draft	\N	2017-05-15 22:23:51.276331	2017-05-15 22:23:59.013469	\N	opendata	c6d6dd1e-6be1-4616-8bee-d7ca8a75f310	f	2017-05-15 22:23:51.302355	26700d68-324d-4bef-8223-24fa39960cc6
+\.
+
+
+--
+-- Data for Name: package_role; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_role (user_object_role_id, package_id) FROM stdin;
+d067fc21-a29d-4ccd-ae47-aa382dd427b1	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+b269929c-b489-49cb-9283-bc63298ed5bc	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+699fda2b-e177-460f-9bd5-e0957b1600db	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+\.
+
+
+--
+-- Data for Name: package_tag; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_tag (id, package_id, tag_id, revision_id, state) FROM stdin;
+\.
+
+
+--
+-- Data for Name: package_tag_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY package_tag_revision (id, package_id, tag_id, revision_id, continuity_id, state, expired_id, revision_timestamp, expired_timestamp, current) FROM stdin;
+\.
+
+
+--
+-- Data for Name: rating; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY rating (id, user_id, user_ip_address, package_id, rating, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: related; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY related (id, type, title, description, image_url, url, created, owner_id, view_count, featured) FROM stdin;
+\.
+
+
+--
+-- Data for Name: related_dataset; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY related_dataset (id, dataset_id, related_id, status) FROM stdin;
+\.
+
+
+--
+-- Data for Name: resource; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY resource (id, url, format, description, "position", revision_id, hash, state, extras, name, resource_type, mimetype, mimetype_inner, size, last_modified, cache_url, cache_last_updated, webstore_url, webstore_last_updated, created, url_type, package_id) FROM stdin;
+1cd0ca10-f39e-4106-8aa4-40e86275a01c	http://gg		gg	0	48d99515-9d21-41a0-bc4b-cb6a9c314924		active	\N	google.c	\N	\N	\N	\N	\N	\N	\N	\N	\N	2017-05-15 22:23:58.875441	\N	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+830ed0d8-ca9f-4f1d-95d7-bee866132a8b	http://google.ca		gg	1	f23ba7d4-48e7-4ecf-ae0c-d3b8741d4020		active	\N	gg	\N	\N	\N	\N	\N	\N	\N	\N	\N	2017-05-15 22:26:48.493159	\N	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+\.
+
+
+--
+-- Data for Name: resource_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY resource_revision (id, url, format, description, "position", revision_id, continuity_id, hash, state, extras, expired_id, revision_timestamp, expired_timestamp, current, name, resource_type, mimetype, mimetype_inner, size, last_modified, cache_url, cache_last_updated, webstore_url, webstore_last_updated, created, url_type, package_id) FROM stdin;
+1cd0ca10-f39e-4106-8aa4-40e86275a01c	gg		gg	0	667a284b-3074-4398-bbbc-0b195bf6316f	1cd0ca10-f39e-4106-8aa4-40e86275a01c		active	\N	\N	2017-05-15 22:23:58.864277	2017-05-15 22:23:59.013469	\N	google.c	\N	\N	\N	\N	\N	\N	\N	\N	\N	2017-05-15 22:23:58.875441	\N	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+1cd0ca10-f39e-4106-8aa4-40e86275a01c	http://gg		gg	0	48d99515-9d21-41a0-bc4b-cb6a9c314924	1cd0ca10-f39e-4106-8aa4-40e86275a01c		active	\N	\N	2017-05-15 22:23:59.013469	9999-12-31 00:00:00	\N	google.c	\N	\N	\N	\N	\N	\N	\N	\N	\N	2017-05-15 22:23:58.875441	\N	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+830ed0d8-ca9f-4f1d-95d7-bee866132a8b	http://google.ca		gg	1	f23ba7d4-48e7-4ecf-ae0c-d3b8741d4020	830ed0d8-ca9f-4f1d-95d7-bee866132a8b		active	\N	\N	2017-05-15 22:26:48.940061	9999-12-31 00:00:00	\N	gg	\N	\N	\N	\N	\N	\N	\N	\N	\N	2017-05-15 22:26:48.493159	\N	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+830ed0d8-ca9f-4f1d-95d7-bee866132a8b	google.ca		gg	1	a803eb7e-e38a-49fd-b093-c66c9189f4ae	830ed0d8-ca9f-4f1d-95d7-bee866132a8b		active	\N	\N	2017-05-15 22:26:48.480663	2017-05-15 22:26:48.940061	\N	gg	\N	\N	\N	\N	\N	\N	\N	\N	\N	2017-05-15 22:26:48.493159	\N	abcb9d6f-9d1b-4cb7-88fb-d139cd4aa605
+\.
+
+
+--
+-- Data for Name: resource_view; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY resource_view (id, resource_id, title, description, view_type, "order", config) FROM stdin;
+\.
+
+
+--
+-- Data for Name: revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY revision (id, "timestamp", author, message, state, approved_timestamp) FROM stdin;
+f56aaead-85e5-45e6-a7ef-8a20af568c48	2017-05-15 22:21:57.207811	system	Add versioning to groups, group_extras and package_groups	active	2017-05-15 22:21:57.207811
+f2365688-06e3-4056-8456-22ed98014c1d	2017-05-15 22:21:57.566786	admin	Admin: make sure every object has a row in a revision table	active	2017-05-15 22:21:57.566786
+d8d380d5-5de2-45b2-9843-b2a83a1c2a3e	2017-05-15 22:23:18.971059	default		active	\N
+dbce5630-1e62-4a02-a04d-add612188e61	2017-05-15 22:23:19.03855	default	REST API: Create member object 	active	\N
+375052f2-1f83-47d8-b33e-80967d39f1cb	2017-05-15 22:23:51.276331	default		active	\N
+667a284b-3074-4398-bbbc-0b195bf6316f	2017-05-15 22:23:58.864277	default	REST API: Update object default-test-1	active	\N
+48d99515-9d21-41a0-bc4b-cb6a9c314924	2017-05-15 22:23:59.013469	default	REST API: Update object default-test-1	active	\N
+a803eb7e-e38a-49fd-b093-c66c9189f4ae	2017-05-15 22:26:48.480663	default	REST API: Update object default-test-1	active	\N
+f23ba7d4-48e7-4ecf-ae0c-d3b8741d4020	2017-05-15 22:26:48.940061	default	REST API: Update object default-test-1	active	\N
+\.
+
+
+--
+-- Data for Name: role_action; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY role_action (id, role, context, action) FROM stdin;
+f8a564d3-9ed7-4f60-915c-99499adcaec2	editor		read-site
+6c84bb46-b940-4779-ab64-1b2a622b1eda	editor		read-user
+3832bb3d-37d7-418b-866c-60bfcaf03a9a	editor		create-user
+c2328da2-84bd-48e7-a0f7-b63eaf620ce0	reader		read-site
+cfdb63e1-40d1-42fc-bd23-cf914162aab8	reader		read-user
+e7844286-2a46-4af3-9166-1a7538497190	reader		create-user
+5901f854-2784-4c15-9c14-9fdc96f57fa3	editor		edit
+cd6db415-3e01-4958-bb68-f0ad50d702a8	editor		create-package
+0014a697-d8d8-4dd5-9b92-154de6870854	editor		create-group
+fc6aa2d0-e0e4-4b65-946d-50c1b285e8e0	editor		read
+fd5d45e3-3672-4d22-98a2-7e9b14fbc5a9	editor		file-upload
+5496afb0-cd9a-48e5-af83-cbe5af0cbd78	anon_editor		edit
+78b645a1-4928-4a4b-9dd3-aea20cbbeafd	anon_editor		create-package
+fc6269f9-9e6a-4878-9e68-f05c8f72030e	anon_editor		create-user
+523bb0c8-b2a5-443a-9b3b-5af977cc325b	anon_editor		read-user
+15dba027-5146-4f50-a089-d51575968ef5	anon_editor		read-site
+d4c8926e-2849-4bc2-857f-b2976cfbf2f5	anon_editor		read
+b2c7336d-047e-4707-8362-deb32895e12a	anon_editor		file-upload
+f208f412-ad76-4358-bfc3-62c10046a74e	reader		read
+\.
+
+
+--
+-- Data for Name: system_info; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY system_info (id, key, value, revision_id) FROM stdin;
+\.
+
+
+--
+-- Name: system_info_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ckan
+--
+
+SELECT pg_catalog.setval('system_info_id_seq', 1, false);
+
+
+--
+-- Data for Name: system_info_revision; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY system_info_revision (id, key, value, revision_id, continuity_id) FROM stdin;
+\.
+
+
+--
+-- Name: system_info_revision_id_seq; Type: SEQUENCE SET; Schema: public; Owner: ckan
+--
+
+SELECT pg_catalog.setval('system_info_revision_id_seq', 1, false);
+
+
+--
+-- Data for Name: system_role; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY system_role (user_object_role_id) FROM stdin;
+4a3f76b6-9e59-4c7c-8812-8bcc3f5f35bb
+4e160fa6-7357-4480-99de-cbd55a2359f5
+\.
+
+
+--
+-- Data for Name: tag; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY tag (id, name, vocabulary_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: task_status; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY task_status (id, entity_id, entity_type, task_type, key, value, state, error, last_updated) FROM stdin;
+\.
+
+
+--
+-- Data for Name: term_translation; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY term_translation (term, term_translation, lang_code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tracking_raw; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY tracking_raw (user_key, url, tracking_type, access_timestamp) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tracking_summary; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY tracking_summary (url, package_id, tracking_type, count, running_total, recent_views, tracking_date) FROM stdin;
+\.
+
+
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY "user" (id, name, apikey, created, about, openid, password, fullname, email, reset_key, sysadmin, activity_streams_email_notifications, state) FROM stdin;
+02f734a2-06e8-4b69-b0b3-d4abcd4ec8a0	logged_in	174c1b62-3fd1-4e1c-b339-0ab3c29ef4c1	2017-05-15 22:21:58.513864	\N	\N	\N	\N	\N	\N	f	f	active
+f8e40835-81b4-4ff6-bc68-17bbb2c2aad9	visitor	9bb0f95b-3cfb-47d1-ab24-e21b6c28ebf9	2017-05-15 22:21:58.514787	\N	\N	\N	\N	\N	\N	f	f	active
+26700d68-324d-4bef-8223-24fa39960cc6	default	9cc08fe3-cc92-4e8d-8fe9-da6d11775b67	2017-05-15 22:22:00.113846	\N	\N	$pbkdf2-sha512$19000$kdJ6L8UYQ6jVOuc8Z8wZow$99LehMDCjxxMK.eTAU26uhFgXMuMnWnI8ZDMWWewQeJ2nVP0uYlogwHOyrPOkUj8.H8Rjh/0seUHImPErKxv4w	\N	\N	\N	t	f	active
+\.
+
+
+--
+-- Data for Name: user_following_dataset; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY user_following_dataset (follower_id, object_id, datetime) FROM stdin;
+\.
+
+
+--
+-- Data for Name: user_following_group; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY user_following_group (follower_id, object_id, datetime) FROM stdin;
+\.
+
+
+--
+-- Data for Name: user_following_user; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY user_following_user (follower_id, object_id, datetime) FROM stdin;
+\.
+
+
+--
+-- Data for Name: user_object_role; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY user_object_role (id, user_id, context, role, authorized_group_id) FROM stdin;
+4a3f76b6-9e59-4c7c-8812-8bcc3f5f35bb	f8e40835-81b4-4ff6-bc68-17bbb2c2aad9	System	reader	\N
+4e160fa6-7357-4480-99de-cbd55a2359f5	02f734a2-06e8-4b69-b0b3-d4abcd4ec8a0	System	editor	\N
+556af658-1ce0-414b-91c4-9f89949a3b96	f8e40835-81b4-4ff6-bc68-17bbb2c2aad9	Group	reader	\N
+f50051bd-965a-48f3-85f3-0ae96487429e	02f734a2-06e8-4b69-b0b3-d4abcd4ec8a0	Group	reader	\N
+cf072ac9-48a5-4aee-a0df-779d0ab08d08	26700d68-324d-4bef-8223-24fa39960cc6	Group	admin	\N
+d067fc21-a29d-4ccd-ae47-aa382dd427b1	f8e40835-81b4-4ff6-bc68-17bbb2c2aad9	Package	reader	\N
+b269929c-b489-49cb-9283-bc63298ed5bc	02f734a2-06e8-4b69-b0b3-d4abcd4ec8a0	Package	reader	\N
+699fda2b-e177-460f-9bd5-e0957b1600db	26700d68-324d-4bef-8223-24fa39960cc6	Package	admin	\N
+\.
+
+
+--
+-- Data for Name: vocabulary; Type: TABLE DATA; Schema: public; Owner: ckan
+--
+
+COPY vocabulary (id, name) FROM stdin;
+\.
+
+
+--
+-- Name: activity_detail activity_detail_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY activity_detail
+    ADD CONSTRAINT activity_detail_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: activity activity_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY activity
+    ADD CONSTRAINT activity_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: authorization_group authorization_group_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group
+    ADD CONSTRAINT authorization_group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: authorization_group_role authorization_group_role_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group_role
+    ADD CONSTRAINT authorization_group_role_pkey PRIMARY KEY (user_object_role_id);
+
+
+--
+-- Name: authorization_group_user authorization_group_user_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group_user
+    ADD CONSTRAINT authorization_group_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dashboard dashboard_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY dashboard
+    ADD CONSTRAINT dashboard_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: group_extra group_extra_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra
+    ADD CONSTRAINT group_extra_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: group_extra_revision group_extra_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra_revision
+    ADD CONSTRAINT group_extra_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: group group_name_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY "group"
+    ADD CONSTRAINT group_name_key UNIQUE (name);
+
+
+--
+-- Name: group group_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY "group"
+    ADD CONSTRAINT group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: group_revision group_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_revision
+    ADD CONSTRAINT group_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: group_role group_role_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_role
+    ADD CONSTRAINT group_role_pkey PRIMARY KEY (user_object_role_id);
+
+
+--
+-- Name: ldap_user ldap_user_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY ldap_user
+    ADD CONSTRAINT ldap_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ldap_user ldap_user_user_id_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY ldap_user
+    ADD CONSTRAINT ldap_user_user_id_key UNIQUE (user_id);
+
+
+--
+-- Name: member member_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member
+    ADD CONSTRAINT member_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: member_revision member_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member_revision
+    ADD CONSTRAINT member_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: migrate_version migrate_version_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY migrate_version
+    ADD CONSTRAINT migrate_version_pkey PRIMARY KEY (repository_id);
+
+
+--
+-- Name: package_extra package_extra_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra
+    ADD CONSTRAINT package_extra_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: package_extra_revision package_extra_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra_revision
+    ADD CONSTRAINT package_extra_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: package package_name_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package
+    ADD CONSTRAINT package_name_key UNIQUE (name);
+
+
+--
+-- Name: package package_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package
+    ADD CONSTRAINT package_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: package_relationship package_relationship_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship
+    ADD CONSTRAINT package_relationship_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: package_relationship_revision package_relationship_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship_revision
+    ADD CONSTRAINT package_relationship_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: package_revision package_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_revision
+    ADD CONSTRAINT package_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: package_role package_role_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_role
+    ADD CONSTRAINT package_role_pkey PRIMARY KEY (user_object_role_id);
+
+
+--
+-- Name: package_tag package_tag_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag
+    ADD CONSTRAINT package_tag_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: package_tag_revision package_tag_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag_revision
+    ADD CONSTRAINT package_tag_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: rating rating_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY rating
+    ADD CONSTRAINT rating_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: related_dataset related_dataset_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY related_dataset
+    ADD CONSTRAINT related_dataset_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: related related_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY related
+    ADD CONSTRAINT related_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: resource resource_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource
+    ADD CONSTRAINT resource_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: resource_revision resource_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource_revision
+    ADD CONSTRAINT resource_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: resource_view resource_view_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource_view
+    ADD CONSTRAINT resource_view_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: revision revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY revision
+    ADD CONSTRAINT revision_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: role_action role_action_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY role_action
+    ADD CONSTRAINT role_action_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_info system_info_key_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info
+    ADD CONSTRAINT system_info_key_key UNIQUE (key);
+
+
+--
+-- Name: system_info system_info_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info
+    ADD CONSTRAINT system_info_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_info_revision system_info_revision_key_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info_revision
+    ADD CONSTRAINT system_info_revision_key_key UNIQUE (key);
+
+
+--
+-- Name: system_info_revision system_info_revision_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info_revision
+    ADD CONSTRAINT system_info_revision_pkey PRIMARY KEY (id, revision_id);
+
+
+--
+-- Name: system_role system_role_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_role
+    ADD CONSTRAINT system_role_pkey PRIMARY KEY (user_object_role_id);
+
+
+--
+-- Name: tag tag_name_vocabulary_id_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY tag
+    ADD CONSTRAINT tag_name_vocabulary_id_key UNIQUE (name, vocabulary_id);
+
+
+--
+-- Name: tag tag_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY tag
+    ADD CONSTRAINT tag_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: task_status task_status_entity_id_task_type_key_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY task_status
+    ADD CONSTRAINT task_status_entity_id_task_type_key_key UNIQUE (entity_id, task_type, key);
+
+
+--
+-- Name: task_status task_status_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY task_status
+    ADD CONSTRAINT task_status_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_following_dataset user_following_dataset_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_dataset
+    ADD CONSTRAINT user_following_dataset_pkey PRIMARY KEY (follower_id, object_id);
+
+
+--
+-- Name: user_following_group user_following_group_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_group
+    ADD CONSTRAINT user_following_group_pkey PRIMARY KEY (follower_id, object_id);
+
+
+--
+-- Name: user_following_user user_following_user_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_user
+    ADD CONSTRAINT user_following_user_pkey PRIMARY KEY (follower_id, object_id);
+
+
+--
+-- Name: user user_name_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY "user"
+    ADD CONSTRAINT user_name_key UNIQUE (name);
+
+
+--
+-- Name: user_object_role user_object_role_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_object_role
+    ADD CONSTRAINT user_object_role_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY "user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vocabulary vocabulary_name_key; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY vocabulary
+    ADD CONSTRAINT vocabulary_name_key UNIQUE (name);
+
+
+--
+-- Name: vocabulary vocabulary_pkey; Type: CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY vocabulary
+    ADD CONSTRAINT vocabulary_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_activity_detail_activity_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_activity_detail_activity_id ON activity_detail USING btree (activity_id);
+
+
+--
+-- Name: idx_activity_object_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_activity_object_id ON activity USING btree (object_id, "timestamp");
+
+
+--
+-- Name: idx_activity_user_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_activity_user_id ON activity USING btree (user_id, "timestamp");
+
+
+--
+-- Name: idx_extra_grp_id_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_extra_grp_id_pkg_id ON member USING btree (group_id, table_id);
+
+
+--
+-- Name: idx_extra_id_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_extra_id_pkg_id ON package_extra USING btree (id, package_id);
+
+
+--
+-- Name: idx_extra_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_extra_pkg_id ON package_extra USING btree (package_id);
+
+
+--
+-- Name: idx_group_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_current ON group_revision USING btree (current);
+
+
+--
+-- Name: idx_group_extra_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_extra_current ON group_extra_revision USING btree (current);
+
+
+--
+-- Name: idx_group_extra_period; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_extra_period ON group_extra_revision USING btree (revision_timestamp, expired_timestamp, id);
+
+
+--
+-- Name: idx_group_extra_period_group; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_extra_period_group ON group_extra_revision USING btree (revision_timestamp, expired_timestamp, group_id);
+
+
+--
+-- Name: idx_group_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_id ON "group" USING btree (id);
+
+
+--
+-- Name: idx_group_name; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_name ON "group" USING btree (name);
+
+
+--
+-- Name: idx_group_period; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_period ON group_revision USING btree (revision_timestamp, expired_timestamp, id);
+
+
+--
+-- Name: idx_group_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_group_pkg_id ON member USING btree (table_id);
+
+
+--
+-- Name: idx_openid; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_openid ON "user" USING btree (openid);
+
+
+--
+-- Name: idx_package_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_current ON package_revision USING btree (current);
+
+
+--
+-- Name: idx_package_extra_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_extra_current ON package_extra_revision USING btree (current);
+
+
+--
+-- Name: idx_package_extra_package_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_extra_package_id ON package_extra_revision USING btree (package_id, current);
+
+
+--
+-- Name: idx_package_extra_period; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_extra_period ON package_extra_revision USING btree (revision_timestamp, expired_timestamp, id);
+
+
+--
+-- Name: idx_package_extra_period_package; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_extra_period_package ON package_extra_revision USING btree (revision_timestamp, expired_timestamp, package_id);
+
+
+--
+-- Name: idx_package_extra_rev_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_extra_rev_id ON package_extra_revision USING btree (revision_id);
+
+
+--
+-- Name: idx_package_group_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_group_current ON member_revision USING btree (current);
+
+
+--
+-- Name: idx_package_group_group_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_group_group_id ON member USING btree (group_id);
+
+
+--
+-- Name: idx_package_group_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_group_id ON member USING btree (id);
+
+
+--
+-- Name: idx_package_group_period_package_group; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_group_period_package_group ON member_revision USING btree (revision_timestamp, expired_timestamp, table_id, group_id);
+
+
+--
+-- Name: idx_package_group_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_group_pkg_id ON member USING btree (table_id);
+
+
+--
+-- Name: idx_package_group_pkg_id_group_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_group_pkg_id_group_id ON member USING btree (group_id, table_id);
+
+
+--
+-- Name: idx_package_period; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_period ON package_revision USING btree (revision_timestamp, expired_timestamp, id);
+
+
+--
+-- Name: idx_package_relationship_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_relationship_current ON package_relationship_revision USING btree (current);
+
+
+--
+-- Name: idx_package_resource_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_resource_id ON resource USING btree (id);
+
+
+--
+-- Name: idx_package_resource_rev_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_resource_rev_id ON resource_revision USING btree (revision_id);
+
+
+--
+-- Name: idx_package_resource_url; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_resource_url ON resource USING btree (url);
+
+
+--
+-- Name: idx_package_tag_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_current ON package_tag_revision USING btree (current);
+
+
+--
+-- Name: idx_package_tag_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_id ON package_tag USING btree (id);
+
+
+--
+-- Name: idx_package_tag_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_pkg_id ON package_tag USING btree (package_id);
+
+
+--
+-- Name: idx_package_tag_pkg_id_tag_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_pkg_id_tag_id ON package_tag USING btree (tag_id, package_id);
+
+
+--
+-- Name: idx_package_tag_revision_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_revision_id ON package_tag_revision USING btree (id);
+
+
+--
+-- Name: idx_package_tag_revision_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_revision_pkg_id ON package_tag_revision USING btree (package_id);
+
+
+--
+-- Name: idx_package_tag_revision_pkg_id_tag_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_revision_pkg_id_tag_id ON package_tag_revision USING btree (tag_id, package_id);
+
+
+--
+-- Name: idx_package_tag_revision_rev_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_revision_rev_id ON package_tag_revision USING btree (revision_id);
+
+
+--
+-- Name: idx_package_tag_revision_tag_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_revision_tag_id ON package_tag_revision USING btree (tag_id);
+
+
+--
+-- Name: idx_package_tag_tag_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_package_tag_tag_id ON package_tag USING btree (tag_id);
+
+
+--
+-- Name: idx_period_package_relationship; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_period_package_relationship ON package_relationship_revision USING btree (revision_timestamp, expired_timestamp, object_package_id, subject_package_id);
+
+
+--
+-- Name: idx_period_package_tag; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_period_package_tag ON package_tag_revision USING btree (revision_timestamp, expired_timestamp, package_id, tag_id);
+
+
+--
+-- Name: idx_pkg_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_id ON package USING btree (id);
+
+
+--
+-- Name: idx_pkg_lname; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_lname ON package USING btree (lower((name)::text));
+
+
+--
+-- Name: idx_pkg_name; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_name ON package USING btree (name);
+
+
+--
+-- Name: idx_pkg_rev_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_rev_id ON package USING btree (revision_id);
+
+
+--
+-- Name: idx_pkg_revision_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_revision_id ON package_revision USING btree (id);
+
+
+--
+-- Name: idx_pkg_revision_name; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_revision_name ON package_revision USING btree (name);
+
+
+--
+-- Name: idx_pkg_revision_rev_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_revision_rev_id ON package_revision USING btree (revision_id);
+
+
+--
+-- Name: idx_pkg_sid; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_sid ON package USING btree (id, state);
+
+
+--
+-- Name: idx_pkg_slname; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_slname ON package USING btree (lower((name)::text), state);
+
+
+--
+-- Name: idx_pkg_sname; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_sname ON package USING btree (name, state);
+
+
+--
+-- Name: idx_pkg_srev_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_srev_id ON package USING btree (revision_id, state);
+
+
+--
+-- Name: idx_pkg_stitle; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_stitle ON package USING btree (title, state);
+
+
+--
+-- Name: idx_pkg_suname; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_suname ON package USING btree (upper((name)::text), state);
+
+
+--
+-- Name: idx_pkg_title; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_title ON package USING btree (title);
+
+
+--
+-- Name: idx_pkg_uname; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_pkg_uname ON package USING btree (upper((name)::text));
+
+
+--
+-- Name: idx_ra_action; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_ra_action ON role_action USING btree (action);
+
+
+--
+-- Name: idx_ra_role; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_ra_role ON role_action USING btree (role);
+
+
+--
+-- Name: idx_ra_role_action; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_ra_role_action ON role_action USING btree (action, role);
+
+
+--
+-- Name: idx_rating_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_rating_id ON rating USING btree (id);
+
+
+--
+-- Name: idx_rating_package_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_rating_package_id ON rating USING btree (package_id);
+
+
+--
+-- Name: idx_rating_user_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_rating_user_id ON rating USING btree (user_id);
+
+
+--
+-- Name: idx_resource_current; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_resource_current ON resource_revision USING btree (current);
+
+
+--
+-- Name: idx_resource_period; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_resource_period ON resource_revision USING btree (revision_timestamp, expired_timestamp, id);
+
+
+--
+-- Name: idx_rev_state; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_rev_state ON revision USING btree (state);
+
+
+--
+-- Name: idx_revision_author; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_revision_author ON revision USING btree (author);
+
+
+--
+-- Name: idx_tag_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_tag_id ON tag USING btree (id);
+
+
+--
+-- Name: idx_tag_name; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_tag_name ON tag USING btree (name);
+
+
+--
+-- Name: idx_uor_context; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_uor_context ON user_object_role USING btree (context);
+
+
+--
+-- Name: idx_uor_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_uor_id ON user_object_role USING btree (id);
+
+
+--
+-- Name: idx_uor_role; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_uor_role ON user_object_role USING btree (role);
+
+
+--
+-- Name: idx_uor_user_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_uor_user_id ON user_object_role USING btree (user_id);
+
+
+--
+-- Name: idx_uor_user_id_role; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_uor_user_id_role ON user_object_role USING btree (user_id, role);
+
+
+--
+-- Name: idx_user_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_user_id ON "user" USING btree (id);
+
+
+--
+-- Name: idx_user_name; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_user_name ON "user" USING btree (name);
+
+
+--
+-- Name: idx_user_name_index; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX idx_user_name_index ON "user" USING btree ((
+CASE
+    WHEN ((fullname IS NULL) OR (fullname = ''::text)) THEN name
+    ELSE fullname
+END));
+
+
+--
+-- Name: ix_ldap_user_ldap_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE UNIQUE INDEX ix_ldap_user_ldap_id ON ldap_user USING btree (ldap_id);
+
+
+--
+-- Name: term; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX term ON term_translation USING btree (term);
+
+
+--
+-- Name: term_lang; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX term_lang ON term_translation USING btree (term, lang_code);
+
+
+--
+-- Name: tracking_raw_access_timestamp; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX tracking_raw_access_timestamp ON tracking_raw USING btree (access_timestamp);
+
+
+--
+-- Name: tracking_raw_url; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX tracking_raw_url ON tracking_raw USING btree (url);
+
+
+--
+-- Name: tracking_raw_user_key; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX tracking_raw_user_key ON tracking_raw USING btree (user_key);
+
+
+--
+-- Name: tracking_summary_date; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX tracking_summary_date ON tracking_summary USING btree (tracking_date);
+
+
+--
+-- Name: tracking_summary_package_id; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX tracking_summary_package_id ON tracking_summary USING btree (package_id);
+
+
+--
+-- Name: tracking_summary_url; Type: INDEX; Schema: public; Owner: ckan
+--
+
+CREATE INDEX tracking_summary_url ON tracking_summary USING btree (url);
+
+
+--
+-- Name: activity_detail activity_detail_activity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY activity_detail
+    ADD CONSTRAINT activity_detail_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES activity(id);
+
+
+--
+-- Name: authorization_group_role authorization_group_role_authorization_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group_role
+    ADD CONSTRAINT authorization_group_role_authorization_group_id_fkey FOREIGN KEY (authorization_group_id) REFERENCES authorization_group(id);
+
+
+--
+-- Name: authorization_group_role authorization_group_role_user_object_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group_role
+    ADD CONSTRAINT authorization_group_role_user_object_role_id_fkey FOREIGN KEY (user_object_role_id) REFERENCES user_object_role(id);
+
+
+--
+-- Name: authorization_group_user authorization_group_user_authorization_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group_user
+    ADD CONSTRAINT authorization_group_user_authorization_group_id_fkey FOREIGN KEY (authorization_group_id) REFERENCES authorization_group(id);
+
+
+--
+-- Name: authorization_group_user authorization_group_user_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY authorization_group_user
+    ADD CONSTRAINT authorization_group_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES "user"(id);
+
+
+--
+-- Name: dashboard dashboard_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY dashboard
+    ADD CONSTRAINT dashboard_user_id_fkey FOREIGN KEY (user_id) REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: group_extra group_extra_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra
+    ADD CONSTRAINT group_extra_group_id_fkey FOREIGN KEY (group_id) REFERENCES "group"(id);
+
+
+--
+-- Name: group_extra_revision group_extra_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra_revision
+    ADD CONSTRAINT group_extra_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES group_extra(id);
+
+
+--
+-- Name: group_extra_revision group_extra_revision_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra_revision
+    ADD CONSTRAINT group_extra_revision_group_id_fkey FOREIGN KEY (group_id) REFERENCES "group"(id);
+
+
+--
+-- Name: group_extra group_extra_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra
+    ADD CONSTRAINT group_extra_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: group_extra_revision group_extra_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_extra_revision
+    ADD CONSTRAINT group_extra_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: group_revision group_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_revision
+    ADD CONSTRAINT group_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES "group"(id);
+
+
+--
+-- Name: group group_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY "group"
+    ADD CONSTRAINT group_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: group_revision group_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_revision
+    ADD CONSTRAINT group_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: group_role group_role_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_role
+    ADD CONSTRAINT group_role_group_id_fkey FOREIGN KEY (group_id) REFERENCES "group"(id);
+
+
+--
+-- Name: group_role group_role_user_object_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY group_role
+    ADD CONSTRAINT group_role_user_object_role_id_fkey FOREIGN KEY (user_object_role_id) REFERENCES user_object_role(id);
+
+
+--
+-- Name: ldap_user ldap_user_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY ldap_user
+    ADD CONSTRAINT ldap_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES "user"(id);
+
+
+--
+-- Name: member member_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member
+    ADD CONSTRAINT member_group_id_fkey FOREIGN KEY (group_id) REFERENCES "group"(id);
+
+
+--
+-- Name: member_revision member_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member_revision
+    ADD CONSTRAINT member_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES member(id);
+
+
+--
+-- Name: member_revision member_revision_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member_revision
+    ADD CONSTRAINT member_revision_group_id_fkey FOREIGN KEY (group_id) REFERENCES "group"(id);
+
+
+--
+-- Name: member member_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member
+    ADD CONSTRAINT member_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: member_revision member_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY member_revision
+    ADD CONSTRAINT member_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_extra package_extra_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra
+    ADD CONSTRAINT package_extra_package_id_fkey FOREIGN KEY (package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_extra_revision package_extra_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra_revision
+    ADD CONSTRAINT package_extra_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES package_extra(id);
+
+
+--
+-- Name: package_extra package_extra_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra
+    ADD CONSTRAINT package_extra_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_extra_revision package_extra_revision_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra_revision
+    ADD CONSTRAINT package_extra_revision_package_id_fkey FOREIGN KEY (package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_extra_revision package_extra_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_extra_revision
+    ADD CONSTRAINT package_extra_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_relationship package_relationship_object_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship
+    ADD CONSTRAINT package_relationship_object_package_id_fkey FOREIGN KEY (object_package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_relationship_revision package_relationship_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship_revision
+    ADD CONSTRAINT package_relationship_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES package_relationship(id);
+
+
+--
+-- Name: package_relationship package_relationship_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship
+    ADD CONSTRAINT package_relationship_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_relationship_revision package_relationship_revision_object_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship_revision
+    ADD CONSTRAINT package_relationship_revision_object_package_id_fkey FOREIGN KEY (object_package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_relationship_revision package_relationship_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship_revision
+    ADD CONSTRAINT package_relationship_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_relationship_revision package_relationship_revision_subject_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship_revision
+    ADD CONSTRAINT package_relationship_revision_subject_package_id_fkey FOREIGN KEY (subject_package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_relationship package_relationship_subject_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_relationship
+    ADD CONSTRAINT package_relationship_subject_package_id_fkey FOREIGN KEY (subject_package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_revision package_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_revision
+    ADD CONSTRAINT package_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES package(id);
+
+
+--
+-- Name: package package_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package
+    ADD CONSTRAINT package_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_revision package_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_revision
+    ADD CONSTRAINT package_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_role package_role_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_role
+    ADD CONSTRAINT package_role_package_id_fkey FOREIGN KEY (package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_role package_role_user_object_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_role
+    ADD CONSTRAINT package_role_user_object_role_id_fkey FOREIGN KEY (user_object_role_id) REFERENCES user_object_role(id);
+
+
+--
+-- Name: package_tag package_tag_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag
+    ADD CONSTRAINT package_tag_package_id_fkey FOREIGN KEY (package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_tag_revision package_tag_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag_revision
+    ADD CONSTRAINT package_tag_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES package_tag(id);
+
+
+--
+-- Name: package_tag package_tag_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag
+    ADD CONSTRAINT package_tag_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_tag_revision package_tag_revision_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag_revision
+    ADD CONSTRAINT package_tag_revision_package_id_fkey FOREIGN KEY (package_id) REFERENCES package(id);
+
+
+--
+-- Name: package_tag_revision package_tag_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag_revision
+    ADD CONSTRAINT package_tag_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: package_tag_revision package_tag_revision_tag_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag_revision
+    ADD CONSTRAINT package_tag_revision_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES tag(id);
+
+
+--
+-- Name: package_tag package_tag_tag_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY package_tag
+    ADD CONSTRAINT package_tag_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES tag(id);
+
+
+--
+-- Name: rating rating_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY rating
+    ADD CONSTRAINT rating_package_id_fkey FOREIGN KEY (package_id) REFERENCES package(id);
+
+
+--
+-- Name: rating rating_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY rating
+    ADD CONSTRAINT rating_user_id_fkey FOREIGN KEY (user_id) REFERENCES "user"(id);
+
+
+--
+-- Name: related_dataset related_dataset_dataset_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY related_dataset
+    ADD CONSTRAINT related_dataset_dataset_id_fkey FOREIGN KEY (dataset_id) REFERENCES package(id);
+
+
+--
+-- Name: related_dataset related_dataset_related_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY related_dataset
+    ADD CONSTRAINT related_dataset_related_id_fkey FOREIGN KEY (related_id) REFERENCES related(id);
+
+
+--
+-- Name: resource_revision resource_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource_revision
+    ADD CONSTRAINT resource_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES resource(id);
+
+
+--
+-- Name: resource resource_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource
+    ADD CONSTRAINT resource_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: resource_revision resource_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource_revision
+    ADD CONSTRAINT resource_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: resource_view resource_view_resource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY resource_view
+    ADD CONSTRAINT resource_view_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resource(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: system_info_revision system_info_revision_continuity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info_revision
+    ADD CONSTRAINT system_info_revision_continuity_id_fkey FOREIGN KEY (continuity_id) REFERENCES system_info(id);
+
+
+--
+-- Name: system_info system_info_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info
+    ADD CONSTRAINT system_info_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: system_info_revision system_info_revision_revision_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_info_revision
+    ADD CONSTRAINT system_info_revision_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+
+
+--
+-- Name: system_role system_role_user_object_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY system_role
+    ADD CONSTRAINT system_role_user_object_role_id_fkey FOREIGN KEY (user_object_role_id) REFERENCES user_object_role(id);
+
+
+--
+-- Name: tag tag_vocabulary_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY tag
+    ADD CONSTRAINT tag_vocabulary_id_fkey FOREIGN KEY (vocabulary_id) REFERENCES vocabulary(id);
+
+
+--
+-- Name: user_following_dataset user_following_dataset_follower_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_dataset
+    ADD CONSTRAINT user_following_dataset_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_following_dataset user_following_dataset_object_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_dataset
+    ADD CONSTRAINT user_following_dataset_object_id_fkey FOREIGN KEY (object_id) REFERENCES package(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_following_group user_following_group_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_group
+    ADD CONSTRAINT user_following_group_group_id_fkey FOREIGN KEY (object_id) REFERENCES "group"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_following_group user_following_group_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_group
+    ADD CONSTRAINT user_following_group_user_id_fkey FOREIGN KEY (follower_id) REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_following_user user_following_user_follower_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_user
+    ADD CONSTRAINT user_following_user_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_following_user user_following_user_object_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_following_user
+    ADD CONSTRAINT user_following_user_object_id_fkey FOREIGN KEY (object_id) REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_object_role user_object_role_authorized_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_object_role
+    ADD CONSTRAINT user_object_role_authorized_group_id_fkey FOREIGN KEY (authorized_group_id) REFERENCES authorization_group(id);
+
+
+--
+-- Name: user_object_role user_object_role_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ckan
+--
+
+ALTER TABLE ONLY user_object_role
+    ADD CONSTRAINT user_object_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES "user"(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect datastore
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.2
+-- Dumped by pg_dump version 9.6.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: _table_metadata; Type: VIEW; Schema: public; Owner: datastore
+--
+
+CREATE VIEW _table_metadata AS
+ SELECT DISTINCT substr(md5(((dependee.relname)::text || (COALESCE(dependent.relname, ''::name))::text)), 0, 17) AS _id,
+    dependee.relname AS name,
+    dependee.oid,
+    dependent.relname AS alias_of
+   FROM (((pg_class dependee
+     LEFT JOIN pg_rewrite r ON ((r.ev_class = dependee.oid)))
+     LEFT JOIN pg_depend d ON ((d.objid = r.oid)))
+     LEFT JOIN pg_class dependent ON ((d.refobjid = dependent.oid)))
+  WHERE (((dependee.oid <> dependent.oid) OR (dependent.oid IS NULL)) AND ((dependee.relname IN ( SELECT pg_tables.tablename
+           FROM pg_tables)) OR (dependee.relname IN ( SELECT pg_views.viewname
+           FROM pg_views))) AND (dependee.relnamespace = ( SELECT pg_namespace.oid
+           FROM pg_namespace
+          WHERE (pg_namespace.nspname = 'public'::name))))
+  ORDER BY dependee.oid DESC;
+
+
+ALTER TABLE _table_metadata OWNER TO datastore;
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO datastore;
+GRANT ALL ON SCHEMA public TO ckan;
+
+
+--
+-- Name: _table_metadata; Type: ACL; Schema: public; Owner: datastore
+--
+
+GRANT SELECT ON TABLE _table_metadata TO ckan;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: datastore
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE datastore IN SCHEMA public REVOKE ALL ON TABLES  FROM datastore;
+ALTER DEFAULT PRIVILEGES FOR ROLE datastore IN SCHEMA public GRANT SELECT ON TABLES  TO ckan;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect postgres
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.2
+-- Dumped by pg_dump version 9.6.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: postgres; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE postgres IS 'default administrative connection database';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\connect template1
+
+SET default_transaction_read_only = off;
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.2
+-- Dumped by pg_dump version 9.6.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: template1; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE template1 IS 'default template for new databases';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- PostgreSQL database cluster dump complete
+--
+
