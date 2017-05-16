@@ -5,22 +5,25 @@ Updates
 ------ 
 Install
 ------
+```
 cd jack_docker/.
 docker-compose rm -f
 docker volume rm -f jackdocker_ckan-data jackdocker_db-data  jackdocker_redis-data jackdocker_solr-data
 docker-compose build
 docker-compose up -d solrdata solr redis db
 docker-compose up 
+```
 
 ------
 Mini Database
 ------
+```
 jack_docker/db/ckan/ckan11.dump is from external protgres DB dump.
 Inside db image, it is postgres db ckan.
 Web app login: username: default
                password: default
 This database is with one organization setup and one dataset setup.
-
+```
 
 
 Docker deployment of OpenGov
