@@ -16,11 +16,12 @@ COPY adjust-config.sh    /docker-entrypoint-initdb.d/
 COPY create-datastore.sh /docker-entrypoint-initdb.d/
 
 # Set permission for datastore
-COPY  set_permission.sql /
-COPY  set_permission.sh /docker-entrypoint-initdb.d/
-RUN   rm -rf /set_permission.sql
+COPY set_permission.sql /
+RUN  chown postgres:postgres  /set_permission.sql
+COPY set_permission.sh /docker-entrypoint-initdb.d/
 
 # restore postgres db
 COPY ckan11.dump  /
+RUN  chown postgres:postgres  /ckan11.dump 
 COPY pg_restore.sh /docker-entrypoint-initdb.d/
-RUN  rm -rf /ckan11.dump
+
