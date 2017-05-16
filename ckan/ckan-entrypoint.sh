@@ -49,6 +49,9 @@ chown www-data: "$CKAN_STORAGE_PATH"
 # Initialize the Database
 #ckan-paster --plugin=ckan db init -c "$CKAN_CONFIG_FILE"
 
+# Solr index the whole DB
+ckan-paster --plugin=ckan search-index rebuild -c "$CKAN_CONFIG_FILE"
+
 echo "Executing" "$@"
 
 exec "$@"

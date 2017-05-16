@@ -12,7 +12,7 @@ docker-compose rm -f
 docker volume rm -f jackdocker_ckan-data jackdocker_db-data  jackdocker_redis-data jackdocker_solr-data
 docker-compose build
 docker-compose up -d solrdata solr redis db
-docker-compose up 
+docker-compose up --build
 ```
 
 ------
