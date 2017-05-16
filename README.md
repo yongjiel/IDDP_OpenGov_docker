@@ -6,6 +6,7 @@ Updates
 Install
 ------
 ```
+sudo chown <current_user>:<current_user> -R /var/lib/docker/volumes
 cd jack_docker/.
 docker-compose rm -f
 docker volume rm -f jackdocker_ckan-data jackdocker_db-data  jackdocker_redis-data jackdocker_solr-data
