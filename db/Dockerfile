@@ -24,4 +24,3 @@ COPY set_permission.sh /docker-entrypoint-initdb.d/
 COPY ckan11.dump  /
 RUN  chown postgres:postgres  /ckan11.dump 
 COPY pg_restore.sh /docker-entrypoint-initdb.d/
-

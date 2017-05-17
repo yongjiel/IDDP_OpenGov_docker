@@ -13,6 +13,7 @@ docker volume rm -f jackdocker_ckan-data jackdocker_db-data  jackdocker_redis-da
 docker-compose build
 docker-compose up -d solrdata solr redis db
 docker-compose up --build
+docker exec -ti jackdocker_db_1 rm -rf /ckan11.dump /set_permission.sql
 ```
 
 ------
