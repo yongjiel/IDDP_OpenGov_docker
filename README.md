@@ -8,6 +8,7 @@ Install
 ```
 sudo chown <current_user>:<current_user> -R /var/lib/docker/volumes
 cd jack_docker/.
+mkdir -p ./mnt/opengov/appfiles
 docker-compose rm -f
 docker volume rm -f jackdocker_ckan-data jackdocker_db-data  jackdocker_redis-data jackdocker_solr-data
 docker-compose build

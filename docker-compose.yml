@@ -62,7 +62,7 @@ services:
       ogp/ckan:latest
     volumes:
       - "ckan-data:/var/lib/ckan"
-      - "/mnt/opengov/appfiles:/mnt/opengov/appfiles"
+      - "./mnt/opengov/appfiles:/mnt/opengov/appfiles"
     depends_on:
       - redis
       - solr
@@ -73,9 +73,9 @@ services:
       CKAN_REDIS_URL: redis://redis/1
       CKAN_DATASTORE_READ_URL:  postgresql://ckan:${DBPASS1}@db/datastore
       CKAN_DATASTORE_WRITE_URL: postgresql://datastore:${DBPASS2}@db/datastore
-      CKAN_SITE_URL: http://172.23.37.24:5001
+      CKAN_SITE_URL: http://localhost:5501
     ports:
-      - "5001:5000"
+      - "5501:5000"
       - "8801:8800"
 
 
