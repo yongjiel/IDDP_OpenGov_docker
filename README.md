@@ -7,6 +7,10 @@ Install
 ------
 ```
 sudo chown <current_user>:<current_user> -R /var/lib/docker/volumes
+Add two lines into ~/.bash_profile
+export DBPASS1=ckan
+export DBPASS2=ckan
+
 cd jack_docker/.
 mkdir -p ./mnt/opengov/appfiles
 docker-compose rm -f
