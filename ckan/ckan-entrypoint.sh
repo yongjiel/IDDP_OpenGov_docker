@@ -44,10 +44,10 @@ echo "Making directories"
 mkdir -p "${CKAN_STORAGE_PATH}"
 chown www-data: "$CKAN_STORAGE_PATH"
 
-#echo "Initializing database"
+echo "Initializing database"
 
 # Initialize the Database
-#ckan-paster --plugin=ckan db init -c "$CKAN_CONFIG_FILE"
+ckan-paster --plugin=ckan db init -c "$CKAN_CONFIG_FILE"
 
 # Solr index the whole DB
 ckan-paster --plugin=ckan search-index rebuild -c "$CKAN_CONFIG_FILE"
