@@ -11,6 +11,7 @@ Add two lines into ~/.bash_profile
 export DBPASS1=ckan
 export DBPASS2=ckan
 
+. ~/.bash_profile
 cd jack_docker/.
 mkdir -p ./mnt/opengov/appfiles
 docker-compose rm -f
