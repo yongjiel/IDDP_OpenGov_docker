@@ -23,6 +23,11 @@ docker exec -ti jackdocker_db_1 rm -rf /ckan11.dump /set_permission.sql
 ```
 
 ------
+Test server
+------
+http://localhost:5501
+
+------
 Mini Database
 ------
 ```
