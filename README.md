@@ -38,6 +38,12 @@ Web app login: username: default
 This database is with one organization setup and one dataset setup.
 ```
 
+------
+Notice
+------
+```
+If the first time you boot up images, uncomment line "ckan-paster --plugin=ckan db init -c "$CKAN_CONFIG_FILE" in ckan/ckan-entrypoint.sh. It will generate clean database for storage. If the second time or later to boot images, comment that line because the database exists in host. Docker will hook to that database and no need of a fresh db.
+```
 
 Docker deployment of OpenGov
 ============================
