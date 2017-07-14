@@ -17,12 +17,14 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 # Install Apache and WSGI
 
 RUN export DEBIAN_FRONTEND=noninteractive \
- && apt-get -q install \
+ && apt-get -q install apt-utils \
         apache2 \
         libapache2-mod-wsgi
 
 RUN apt-get install curl && apt-get install vim \
  && apt-get install less
+
+RUN apt-get install openssh-server
 
 
 # Configure Apache:
