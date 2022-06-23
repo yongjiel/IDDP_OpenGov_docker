@@ -1,8 +1,1 @@
 git+https://github.com/ckan/ckan@ckan-2.3.5#egg=ckan ckan/requirements.txt
-git+https://github.com/NaturalHistoryMuseum/ckanext-ldap@41d7c7803917fd31649c48b904af1d8b7258af15#egg=ckanext-ldap ckanext-ldap/requirements.txt
-git+https://github.com/ckan/ckanext-scheming@697078f821d5af2ece8d769320dc4052e6115495#egg=ckanext-scheming ckanext-scheming/requirements.txt
-git+https://github.com/ckan/ckanext-googleanalytics@v0.0.2#egg=ckanext-googleanalytics
-git+https://github.com/jqnatividad/ckanext-odata@6a14cf13045c979fa76e2c3dfad962bc449a0574#egg=ckanext-odata
-git+https://github.com/yongjiel/ckanext-ab_scheming@a488e21b9f5390b73c61ed6e19fe7b8d0236b653#egg=ckanext-ab_scheming
-git+https://github.com/abgov/ckanext-open_alberta@084da093948708659e53d7cd46175d65fbcfa3f2#egg=ckanext-open_alberta
-git+https://github.com/ckan/datapusher@0.0.8#egg=datapusher datapusher/requirements.txt

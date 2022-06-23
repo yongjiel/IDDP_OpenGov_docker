@@ -1,0 +1,5 @@
+git+https://github.com/ckan/ckanext-scheming@697078f821d5af2ece8d769320dc4052e6115495#egg=ckanext-scheming ckanext-scheming/requirements.txt
+git+https://github.com/jqnatividad/ckanext-odata@6a14cf13045c979fa76e2c3dfad962bc449a0574#egg=ckanext-odata
+git+https://github.com/yongjiel/ckanext-ab_scheming@a488e21b9f5390b73c61ed6e19fe7b8d0236b653#egg=ckanext-ab_scheming
+git+https://github.com/yongjiel/ckanext-open_alberta@resource_alignment#egg=ckanext-open_alberta ckanext-open_alberta/dev-requirements.txt
+git+https://github.com/ckan/datapusher@0.0.8#egg=datapusher datapusher/requirements.txt

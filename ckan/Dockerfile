@@ -67,6 +67,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         libssl-dev \
         libxml2-dev \
         libxslt-dev
+RUN ckan-pip install pbr
 COPY packages.txt /tmp/
 RUN set -e; \
     cat /tmp/packages.txt | while read URL REQUIREMENTS; do \
@@ -78,6 +79,28 @@ RUN set -e; \
         fi; \
     done; \
     rm -f /tmp/packages.txt
+COPY packages2.txt /tmp/
+RUN set -e; \
+    cat /tmp/packages2.txt | while read URL REQUIREMENTS; do \
+        echo "\\n**** Installing $URL ****\\n"; \
+        ckan-pip install -e $URL; \
+        if [ -n "$REQUIREMENTS" ]; then \
+            echo "\\n**** Installing $CKAN_HOME/src/$REQUIREMENTS ****\\n"; \
+            ckan-pip install -r $CKAN_HOME/src/$REQUIREMENTS; \
+        fi; \
+    done; \
+    rm -f /tmp/packages2.txt
+COPY packages3.txt /tmp/
+RUN set -e; \
+    cat /tmp/packages3.txt | while read URL REQUIREMENTS; do \
+        echo "\\n**** Installing $URL ****\\n"; \
+        ckan-pip install -e $URL; \
+        if [ -n "$REQUIREMENTS" ]; then \
+            echo "\\n**** Installing $CKAN_HOME/src/$REQUIREMENTS ****\\n"; \
+            ckan-pip install -r $CKAN_HOME/src/$REQUIREMENTS; \
+        fi; \
+    done; \
+    rm -f /tmp/packages3.txt
 
 # TMP-BUGFIX https://github.com/ckan/ckan/issues/3388
 RUN ckan-pip install "polib==1.0.7"
