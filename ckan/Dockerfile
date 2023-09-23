@@ -8,18 +8,29 @@ LABEL description="CKAN Application"
 RUN echo 'APT::Get::Assume-Yes "true";' \
          'APT::Install-Recommends "false";' >/etc//apt/apt.conf.d/00docker
 
+RUN cat /usr/share/doc/apt/examples/sources.list
 # Bring system up to date
+RUN echo "deb http://us.archive.ubuntu.com/ubuntu focal main restricted" > /etc/apt/sources.list
+RUN echo "deb-src http://us.archive.ubuntu.com/ubuntu focal main restricted" >> /etc/apt/sources.list
+RUN echo "deb http://security.ubuntu.com/ubuntu focal-security main restricted" >> /etc/apt/sources.list
+RUN echo  "deb-src http://security.ubuntu.com/ubuntu focal-security main restricted" >> /etc/apt/sources.list
+RUN echo  "deb http://us.archive.ubuntu.com/ubuntu focal-updates main restricted" >> /etc/apt/sources.list
+RUN echo  "deb-src http://us.archive.ubuntu.com/ubuntu focal-updates main restricted" >> /etc/apt/sources.list
 
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
 RUN export DEBIAN_FRONTEND=noninteractive \
- && apt-get -q update \
- && apt-get -q dist-upgrade
+ && apt-get -q update --force-yes\
+ && apt-get -q dist-upgrade --force-yes
 
+RUN add-apt-repository restricted
+RUN add-apt-repository multiverse
+RUN add-apt-repository universe
 # Install Apache and WSGI
 
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get -q install apt-utils \
         apache2 \
-        libapache2-mod-wsgi
+        libapache2-mod-wsgi --force-yes
 
 RUN apt-get install curl && apt-get install vim \
  && apt-get install less
